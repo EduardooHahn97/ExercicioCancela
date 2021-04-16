@@ -14,6 +14,7 @@
 #define SA PORTBbits.RB1
 #define SCA PORTBbits.RB2
 #define SCF PORTBbits.RB3
+
 //Definindo os pinos de saída
 #define LED_ABRINDO PORTCbits.RC7
 #define LED_FECHANDO PORTCbits.RC6
@@ -30,6 +31,7 @@ void main(void) {
    TRISBbits.TRISB1 = 1;
    TRISBbits.TRISB2 = 1;
    TRISBbits.TRISB3 = 1;
+   
    TRISCbits.TRISC3 = 0;
    TRISCbits.TRISC4 = 0;
    TRISCbits.TRISC5 = 0;
@@ -48,33 +50,53 @@ void main(void) {
    SENTIDO_MOTOR = 0;
    MOTOR = 0;
    
-   while(1)
-   {
-       if(SA == 0)
-       {
-            LED_ABRINDO = 1;
-            LED_FECHANDO = 1;
-            SIRENE = 1; 
-            SENTIDO_MOTOR = 1;
-            MOTOR = 1;
-            __delay_ms(500);
-            LED_ABRINDO = 0;
-            LED_FECHANDO = 0;
-            SIRENE = 0; 
-            SENTIDO_MOTOR = 0;
-            MOTOR = 0;
-       }
+   while(1){
+      if(SA == 0 && SCA != 0 && ST != 0){
+         LED_ABRINDO = 1;
+         MOTOR = 1;
+         SENTIDO_MOTOR = 1; 
+      }
+      
+      if (SA != 0 && SCF != 0 && SCA != 0){
+         LED_FECHANDO = 1;
+         MOTOR = 1;
+         SENTIDO_MOTOR = 0; 
+      }
+       
+      if(SCA == 0){
+         MOTOR = 0;
+         LED_ABRINDO = 0;
+      }
+      
+      if(SCF == 0 && SA != 0){
+         MOTOR = 0;
+         LED_FECHANDO = 0;
+      }
    }
    
    return;
 }
 
-void __interrupt() TratarInterrupcao() 
-{
-    if (INTF) 
-    {
-        
-    }
-
-    return;
+void __interrupt() TratarInterrupcao() {
+   if (INTF){
+      if (SCF != 0){
+         SIRENE = 1;
+         LED_FECHANDO = 1;
+         MOTOR = 1;
+         SENTIDO_MOTOR = 0; 
+         __delay_ms(2000);
+         SIRENE = 0;
+         LED_FECHANDO = 0;
+         MOTOR = 0;
+      }else{
+         SIRENE = 1;
+         __delay_ms(2000);
+      }   
+      
+      SIRENE = 0;
+      INTF = 0;
+    
+   }
+   
+   return;
 }
